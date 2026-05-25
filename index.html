@@ -222,6 +222,13 @@
     <div class="box-card-ocorrencia">
         <h3 id="tituloOcorrenciaRomaneio">Ocorrencias - </h3>
         
+        <!-- Bloco de Alternância de Tipo de Ocorrência -->
+        <div style="display: flex; gap: 10px; margin: 15px 0; justify-content: center;">
+            <button type="button" id="btnTipoInformar" onclick="selecionarTipoOcorrencia('Informar')" style="flex: 1; padding: 10px; border: 2px solid #8A05BE; background: #8A05BE; color: white; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px;">📝 Informar</button>
+            
+            <button type="button" id="btnTipoDevolver" onclick="selecionarTipoOcorrencia('Devolver')" style="flex: 1; padding: 10px; border: 2px solid #ccc; background: #f9f9f9; color: #666; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px;">🔄 Devolver</button>
+        </div>
+
         <div class="form-group-oc">
             <label>Motivo da retenção:</label>
             <select id="oc_motivo">
@@ -282,7 +289,7 @@
 
 <!-- 1. TELA DE LOGIN -->
 <div id="screen-login" class="card"> <!-- Adicionado a classe card aqui -->
-    <h3>Passagem de Carga | Conferência v5</h3>
+    <h3>Passagem de Carga | Conferência v1</h3>
     <label>E-mail</label>
     <input type="email" id="login-user" placeholder="seu@email.com">
     
@@ -1919,8 +1926,12 @@ function fecharModalRetido() {
 
 // Variável temporária de controle para o encerramento em duas etapas
 let romaneioSendoFinalizado = "";
-
+// Controla a regra ativa selecionada pelo usuário no modal de ocorrências (Default: Devolver)
+let tipoOcorrenciaSelecionada = "Devolver";
+    
 async function abrirTelaOcorrenciaCompleta() {
+    // Reseta a seleção para o padrão toda vez que o modal carrega
+     selecionarTipoOcorrencia("Devolver");
     // 1. Oculta o modal de perguntas imediatamente
     const modalPerg = document.getElementById("modalPerguntaOcorrencia");
     if (modalPerg) {
@@ -2028,170 +2039,183 @@ function pularOcorrenciaEFinalizar() {
 
 
 async function enviarOcorrenciaFluxo() {
-  const motivo = document.getElementById("oc_motivo").value;
-  const descricaoInput = document.getElementById("oc_descricao");
-  const tokenDev = document.getElementById("oc_token_devolucao").value;
-  const fotoInput = document.getElementById("oc_foto");
-  const btn = document.getElementById("btnEnviarOcorrenciaFinal");
-
-  // Força o isolamento total do texto digitado para limpar caches residuais de memória local
-  const textoDigitadoUsuario = descricaoInput ? descricaoInput.value.toString().trim() : "";
-
-  // 1. Validações Locais Básicas Obrigatórias (Originais mantidas)
-  if (!motivo) return alert("⚠️ Selecione o motivo da retenção!");
-  if (!textoDigitadoUsuario) return alert("⚠️ Digite uma descrição detalhada!");
-  if (!tokenDev.trim()) return alert("⚠️ Informe o TOKEN DE DEVOLUÇÃO!");
-
-  let temFoto = fotoInput && fotoInput.files && fotoInput.files.length > 0;
-  if (motivo === "Mercadoria Avariada" && !temFoto) {
-    return alert("⚠️ É obrigatório anexar uma foto para evidenciar a Mercadoria Avariada/Danificada!");
-  }
-
-  // Captura e concatenação horizontal obrigatória dos pedidos selecionados
-  const checkboxes = document.querySelectorAll('input[name="oc_itens_selecionados"]:checked, input[name="adm_itens_selecionados"]:checked');
-  
-  if (checkboxes.length === 0) {
-    return alert("⚠️ É MANDATÓRIO selecionar ao menos um pedido com divergência/avaria no painel central!");
-  }
-
-  const listaCodigos = []; 
-  checkboxes.forEach(cb => { 
-    if(cb.value) listaCodigos.push(cb.value.toString().trim());
-  });
-  
-  // 🎨 SINTONIA VISUAL: Substituído o '\n' por um traço para manter a linha horizontal reta no Sheets
-  const sufixoPedidosFormatado = " - [Pedidos Afetados: " + listaCodigos.join(", ") + "]";
-  const descricaoFinalComItens = textoDigitadoUsuario + sufixoPedidosFormatado;
-
-  // Captura direta do romaneio ativo na tela
-  let romaneioId = "";
-  const elementoRomaneio = document.getElementById("romaneio");
-  if (elementoRomaneio && elementoRomaneio.value) {
-    romaneioId = elementoRomaneio.value.toString().trim().toUpperCase();
-  }
-  if (!romaneioId && typeof romaneioSendoFinalizado !== "undefined") {
-    romaneioId = romaneioSendoFinalizado.toString().trim().toUpperCase();
-  }
-
-  btn.disabled = true;
-  btn.innerText = "Validando Token...";
-
-  try {
-    // DISPARO DA VALIDAÇÃO DIRETA DO TOKEN NO SERVIDOR (GET)
-    const urlValidacao = `${urlSheets}?action=consultarSegurancaOcorrencia&romaneio=${encodeURIComponent(romaneioId)}`;
-    
-    const resValidacao = await fetch(urlValidacao);
-    const dataValidacao = await resValidacao.json();
-
-    if (!dataValidacao || !dataValidacao.success) {
-      alert("❌ Erro de validação:\n\n" + (dataValidacao ? dataValidacao.error : "Sem resposta do servidor"));
-      return; 
-    }
-
-    const tokenServidor = (dataValidacao.token2 || "").toString().trim();
-    const tokenDigitadoLimpo = tokenDev.trim();
-
-    if (tokenServidor === "" || tokenDigitadoLimpo !== tokenServidor) {
-      alert("❌ Erro: O Token de Devolução informado é inválido para este Romaneio.");
-      return; 
-    }
+ const motivo = document.getElementById("oc_motivo").value;
+ const descricaoInput = document.getElementById("oc_descricao");
+ const tokenDev = document.getElementById("oc_token_devolucao").value;
+ const fotoInput = document.getElementById("oc_foto");
+ const btn = document.getElementById("btnEnviarOcorrenciaFinal");
  
-    btn.innerText = "Processando arquivo...";
-    let fotoBase64 = "";
-    let fotoNome = "";
-
-    if (temFoto) {
-      const arquivo = fotoInput.files[0]; // Extrai o Blob individual correto
-      fotoNome = arquivo.name;
-      fotoBase64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]); // Isola o Base64 binário puro sem MIME headers
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(arquivo);
-      });
-    }
-
-    btn.innerText = "Gravando...";
-
-    // Prepara o payload para o fechamento transacional (POST)
-    const payloadOcorrencia = {
-      action: "salvarFluxoOcorrenciaCONF",
-      romaneio: romaneioId,
-      oc_motivo: motivo, 
-      oc_descricao: descricaoFinalComItens, 
-      oc_token: tokenDigitadoLimpo,
-      oc_foto_data: fotoBase64, 
-      oc_foto_name: fotoNome,
-      oc_itens_remover: JSON.stringify(listaCodigos) // Passa o array plano para o motor de deleção reversa
-    };
-
-    const corpoFormulario = new URLSearchParams();
-    Object.keys(payloadOcorrencia).forEach(key => {
-      corpoFormulario.append(key, payloadOcorrencia[key]);
-    });
-
-    // 🚀 DISPARO ASSÍNCRONO POST DIRECIONADO PARA O FLOW EXCLUSIVO DO BACK-GS
-    const response = await fetch(urlSheets, {
-      method: 'POST',
-      body: corpoFormulario,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    });
+ // Força o isolamento total do texto digitado para limpar caches residuais de memória local
+ const textoDigitadoUsuario = descricaoInput ? descricaoInput.value.toString().trim() : "";
  
-    const result = await response.json();
-    if (result.success) {
-      
-      // A: Oculta a tela de ocorrência atual
-      const modalOcorrencia = document.getElementById("screenOcorrenciaLote");
-      if (modalOcorrencia) {
-        modalOcorrencia.style.display = "none";
-        modalOcorrencia.classList.add("hidden");
-      }
+ // 1. Validações Locais Básicas Obrigatórias (Originais mantidas)
+ if (!motivo) return alert(" Selecione o motivo da retenção!");
+ if (!textoDigitadoUsuario) return alert(" Digite uma descrição detalhada!");
  
-      // B: Executa a limpeza física de todos os inputs da tela através da sua esteira homologada
-      if (typeof cancelarOcorrenciaEVoltar === "function") {
-        cancelarOcorrenciaEVoltar();
-      }
-
-      // =========================================================================
-      // 💣 HARD CLEAN DO CACHE INTERNO (DADOSCOMPLETOS) - SEM ERROS DE CHAVES
-      // =========================================================================
-      if (typeof dadosCompletos !== 'undefined' && dadosCompletos.length > 0 && typeof romaneioId !== 'undefined') {
-        const dadosRomaneio = dadosCompletos.find(function(item) {
-          return (item.Romaneio && item.Romaneio.toString().toUpperCase() === romaneioId.toString().toUpperCase()) || 
-                 (item.romaneio && item.romaneio.toString().toUpperCase() === romaneioId.toString().toUpperCase()) ||
-                 (item.id && item.id.toString().toUpperCase() === romaneioId.toString().toUpperCase());
-        });
-        
-        if (dadosRomaneio) {
-          if ('Intercorrencia' in dadosRomaneio) dadosRomaneio.Intercorrencia = "";
-          if ('intercorrencia' in dadosRomaneio) dadosRomaneio.intercorrencia = "";
-          if ('INTERCORRENCIAS' in dadosRomaneio) dadosRomaneio.INTERCORRENCIAS = "";
-        }
-      }
-      // =========================================================================
-
-      alert("✅ Lote finalizado com sucesso!");
-
-      // C: Executa a esteira nativa de encerramento completa do sistema
-      if (typeof resetarInterface === "function") {
-        resetarInterface();
-      }
-
-    } else {
-      alert("❌ Erro ao finalizar lote no servidor: " + (result.error || "Tente novamente."));
-    }
-
-  } catch (err) {
-    // 🔒 FECHAMENTO MANDATÓRIO DO BLOCO TRY MESTRE DA FUNÇÃO
-    console.error("Erro no fluxo de ocorrência:", err);
-    alert("❌ Falha crítica: " + err.message);
-
-  } finally {
-    // 🔄 REATIVA O BOTÃO GARANTIDO EM QUALQUER CENÁRIO DE CONEXÃO
-    btn.disabled = false;
-    btn.innerText = "Enviar";
-  }
+ // 🌟 CIRÚRGICO: Validação do token de devolução baseada na regra quântica de escolha
+ if (typeof tipoOcorrenciaSelecionada !== "undefined" && tipoOcorrenciaSelecionada === "Devolver") {
+   if (!tokenDev.trim()) return alert(" Informe o TOKEN DE DEVOLUÇÃO!");
+ }
+ 
+ let temFoto = fotoInput && fotoInput.files && fotoInput.files.length > 0;
+ if (motivo === "Mercadoria Avariada" && !temFoto) {
+ return alert(" É obrigatório anexar uma foto para evidenciar a Mercadoria Avariada/Danificada!");
+ }
+ 
+ // Captura e concatenação horizontal obrigatória dos pedidos selecionados
+ const checkboxes = document.querySelectorAll('input[name="oc_itens_selecionados"]:checked, input[name="adm_itens_selecionados"]:checked');
+ 
+ if (checkboxes.length === 0) {
+ return alert(" É MANDATÓRIO selecionar ao menos um pedido com divergência/avaria no painel central!");
+ }
+ 
+ const listaCodigos = []; 
+ checkboxes.forEach(cb => { 
+ if(cb.value) listaCodigos.push(cb.value.toString().trim());
+ });
+ 
+ // SINTONIA VISUAL: Substituído o '\n' por um traço para manter a linha horizontal reta no Sheets
+ const sufixoPedidosFormatado = " - [Pedidos Afetados: " + listaCodigos.join(", ") + "]";
+ 
+ // 🌟 CIRÚRGICO: Aplicação do sufixo de conclusão condicional direto na string final
+ let descricaoFinalComItens = textoDigitadoUsuario + sufixoPedidosFormatado;
+ if (typeof tipoOcorrenciaSelecionada !== "undefined" && tipoOcorrenciaSelecionada === "Informar") {
+   descricaoFinalComItens += " | Volumes confirmados / CONCLUÍDO";
+ }
+ 
+ // Captura direta do romaneio ativo na tela
+ let romaneioId = "";
+ const elementoRomaneio = document.getElementById("romaneio");
+ if (elementoRomaneio && elementoRomaneio.value) {
+ romaneioId = elementoRomaneio.value.toString().trim().toUpperCase();
+ }
+ if (!romaneioId && typeof romaneioSendoFinalizado !== "undefined") {
+ romaneioId = romaneioSendoFinalizado.toString().trim().toUpperCase();
+ }
+ 
+ btn.disabled = true;
+ 
+ // 🌟 CIRÚRGICO: Gerenciamento em cascata da barreira de checagem do Token no Servidor
+ let tokenDigitadoLimpo = tokenDev.trim();
+ 
+ if (typeof tipoOcorrenciaSelecionada !== "undefined" && tipoOcorrenciaSelecionada === "Informar") {
+   // Se o fluxo for Informar, ignora a validação HTTP do Token e pula direto para o processamento de imagem
+   console.log("📝 Modo Informar Ativo: Ignorando checagem cruzada de tokens no Apps Script.");
+ } else {
+   // Fluxo original de Devolução mantido intacto e seguro
+   btn.innerText = "Validando Token...";
+   try {
+     const urlValidacao = `${urlSheets}?action=consultarSegurancaOcorrencia&romaneio=${encodeURIComponent(romaneioId)}`;
+     const resValidacao = await fetch(urlValidacao);
+     const dataValidacao = await resValidacao.json();
+     if (!dataValidacao || !dataValidacao.success) {
+       alert(" Erro de validação:\n\n" + (dataValidacao ? dataValidacao.error : "Sem resposta do servidor"));
+       btn.disabled = false;
+       btn.innerText = "Enviar";
+       return; 
+     }
+     const tokenServidor = (dataValidacao.token2 || "").toString().trim();
+     if (tokenServidor === "" || tokenDigitadoLimpo !== tokenServidor) {
+       alert(" Erro: O Token de Devolução informado é inválido para este Romaneio.");
+       btn.disabled = false;
+       btn.innerText = "Enviar";
+       return; 
+     }
+   } catch (errVal) {
+     console.error("Erro na checagem do token:", errVal);
+     btn.disabled = false;
+     btn.innerText = "Enviar";
+     return alert("Falha na validação de segurança.");
+   }
+ }
+ 
+ btn.innerText = "Processando arquivo...";
+ let fotoBase64 = "";
+ let fotoNome = "";
+ if (temFoto) {
+ const arquivo = fotoInput.files[0]; // Extrai o Blob individual correto
+ fotoNome = arquivo.name;
+ fotoBase64 = await new Promise((resolve, reject) => {
+ const reader = new FileReader();
+ reader.onload = () => resolve(reader.result.split(',')[1]); // Isola o Base64 binário puro sem MIME headers
+ reader.onerror = error => reject(error);
+ reader.readAsDataURL(arquivo);
+ });
+ }
+ 
+ btn.innerText = "Gravando...";
+ // Prepara o payload para o fechamento transacional (POST)
+ const payloadOcorrencia = {
+ action: "salvarFluxoOcorrenciaCONF",
+ romaneio: romaneioId,
+ oc_motivo: motivo, 
+ oc_descricao: descricaoFinalComItens, 
+ oc_token: tokenDigitadoLimpo,
+ oc_foto_data: fotoBase64, 
+ oc_foto_name: fotoNome,
+ oc_itens_remover: JSON.stringify(listaCodigos), // Passa o array plano para o motor de deleção reversa
+ 
+ // 🌟 CIRÚRGICO: Injeta a variável de controle no payload para o backend interpretar as linhas
+ tipoFluxo: (typeof tipoOcorrenciaSelecionada !== "undefined") ? tipoOcorrenciaSelecionada : "Devolver"
+ };
+ 
+ const corpoFormulario = new URLSearchParams();
+ Object.keys(payloadOcorrencia).forEach(key => {
+ corpoFormulario.append(key, payloadOcorrencia[key]);
+ });
+ 
+ try {
+ // DISPARO ASSÍNCRONO POST DIRECIONADO PARA O FLOW EXCLUSIVO DO BACK-GS
+ const response = await fetch(urlSheets, {
+ method: 'POST',
+ body: corpoFormulario,
+ headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+ });
+ const result = await response.json();
+ if (result.success) {
+ 
+ // A: Oculta a tela de ocorrência atual
+ const modalOcorrencia = document.getElementById("screenOcorrenciaLote");
+ if (modalOcorrencia) {
+ modalOcorrencia.style.display = "none";
+ modalOcorrencia.classList.add("hidden");
+ }
+ // B: Executa a limpeza física de todos os inputs da tela através da sua esteira homologada
+ if (typeof cancelarOcorrenciaEVoltar === "function") {
+ cancelarOcorrenciaEVoltar();
+ }
+ 
+ if (typeof dadosCompletos !== 'undefined' && dadosCompletos.length > 0 && typeof romaneioId !== 'undefined') {
+ const dadosRomaneio = dadosCompletos.find(function(item) {
+ return (item.Romaneio && item.Romaneio.toString().toUpperCase() === romaneioId.toString().toUpperCase()) || 
+ (item.romaneio && item.romaneio.toString().toUpperCase() === romaneioId.toString().toUpperCase()) ||
+ (item.id && item.id.toString().toUpperCase() === romaneioId.toString().toUpperCase());
+ });
+ 
+ if (dadosRomaneio) {
+ if ('Intercorrencia' in dadosRomaneio) dadosRomaneio.Intercorrencia = "";
+ if ('intercorrencia' in dadosRomaneio) dadosRomaneio.intercorrencia = "";
+ if ('INTERCORRENCIAS' in dadosRomaneio) dadosRomaneio.INTERCORRENCIAS = "";
+ }
+ }
+ 
+ alert(" Lote finalizado com sucesso!");
+ // C: Executa a esteira nativa de encerramento completa do sistema
+ if (typeof resetarInterface === "function") {
+ resetarInterface();
+ }
+ } else {
+ alert(" Erro ao finalizar lote no servidor: " + (result.error || "Tente novamente."));
+ }
+ } catch (err) {
+ console.error("Erro no fluxo de ocorrência:", err);
+ alert(" Falha crítica: " + err.message);
+ } finally {
+ btn.disabled = false;
+ btn.innerText = "Enviar";
+ }
 }
+
 
 
 
@@ -2470,6 +2494,30 @@ function limparCamposModalOcorrencia() {
     if (tokenDev) tokenDev.value = "";
     
     console.log("🧼 Cache visual do modal de ocorrências limpo com sucesso!");
+}
+
+    function selecionarTipoOcorrencia(tipo) {
+    tipoOcorrenciaSelecionada = tipo;
+    
+    const btnInf = document.getElementById("btnTipoInformar");
+    const btnDev = document.getElementById("btnTipoDevolver");
+    const inputToken = document.getElementById("oc_token_devolucao");
+    
+    if (tipo === "Informar") {
+        // Ativa botão Informar (Roxo)
+        if(btnInf) { btnInf.style.background = "#8A05BE"; btnInf.style.color = "white"; btnInf.style.borderColor = "#8A05BE"; }
+        // Desativa botão Devolver (Cinza)
+        if(btnDev) { btnDev.style.background = "#f9f9f9"; btnDev.style.color = "#666"; btnDev.style.borderColor = "#ccc"; }
+        // Modifica placeholder do Token para indicar opcionalidade
+        if(inputToken) inputToken.placeholder = "Digite o token de autorização (Opcional)";
+    } else {
+        // Ativa botão Devolver (Roxo)
+        if(btnDev) { btnDev.style.background = "#8A05BE"; btnDev.style.color = "white"; btnDev.style.borderColor = "#8A05BE"; }
+        // Desativa botão Informar (Cinza)
+        if(btnInf) { btnInf.style.background = "#f9f9f9"; btnInf.style.color = "#666"; btnInf.style.borderColor = "#ccc"; }
+        // Retorna placeholder original
+        if(inputToken) inputToken.placeholder = "Digite o token de autorização";
+    }
 }
 
     
