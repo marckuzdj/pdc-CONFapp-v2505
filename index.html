@@ -233,17 +233,27 @@
             <label>Motivo da retenção:</label>
             <select id="oc_motivo">
                 <option value="">Selecione o motivo...</option>
+                
                 <optgroup label="📦 Carga e Pedidos">
-                    <option value="Divergência de Quantidade">Divergência de Quantidade (Faltando/Sobrando)</option>
-                    <option value="Mercadoria Avariada">Mercadoria Avariada/Danificada</option>
+                    <option value="Divergência de Quantidade">Divergência de Quantidade (Falta/Sobra de itens na conferência.)</option>
+                    <option value="Produto Danificado">Produto quebrado ou com defeito visível.</option>                    
+                    <option value="Mercadoria Avariada">Embalagem Rasgada/Amassada ou Molhada.</option>
+                    <option value="Volume Sem Etiqueta">Falta de identificação ou código de barras ilegível.</option>
+                    <option value="Falta de Equipamento">Ausência de paletes ou amarras necessárias.</option>   
                 </optgroup>
+                
                 <optgroup label="📄 Documentação e Fiscal">
-                    <option value="NF não Emitida">NF não Emitida / Erro no Faturamento</option>
+                    <option value="NF-e não Emitida">NF não Emitida / Erro no Faturamento</option>
+                    <option value="NF-e Denegada">Irregularidade fiscal do emissor ou destinatário.</option>
                     <option value="Divergência de Valores">Divergência de Valores/Impostos</option>
+                    <option value="NCM Incorreto">Classificação fiscal do produto está errada.</option>
+                    <option value="Incompatibilidade de CNPJ"> Dados da nota diferem do cadastro do transportador.</option>
                 </optgroup>
+                
                 <optgroup label="⚠️ Outros">
                     <option value="Nova Intercorrencia">Nova Intercorrencia</option>
                 </optgroup>
+                
             </select>
         </div>
 
@@ -289,7 +299,7 @@
 
 <!-- 1. TELA DE LOGIN -->
 <div id="screen-login" class="card"> <!-- Adicionado a classe card aqui -->
-    <h3>Passagem de Carga | Conferência v1</h3>
+    <h3>Passagem de Carga | Conferência v2</h3>
     <label>E-mail</label>
     <input type="email" id="login-user" placeholder="seu@email.com">
     
