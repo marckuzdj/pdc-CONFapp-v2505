@@ -320,20 +320,26 @@
                 <select id="oc_motivo_faltante" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background: white; box-sizing: border-box;">
                     <option value="">Selecione o motivo...</option>
                     <option value="Mercadoria Avariada">Mercadoria Avariada</option>
-                    <option value="Sobra de Carga">Sobra de Carga</option>
-                    <option value="Divergência Operacional">Divergência Operacional</option>
+                    <option value="Troca de Turno">Passagem de bastão entre equipes de conferência.</option>
+                    <option value="Prioridade de Carga">Conferente remanejado para um carregamento urgente.</option>
+                    <option value="Queda de Sistema">Indisponibilidade da rede para bipagem.</option>
+                    <option value="Código de Barras Ilegível">Impossibilidade de bipar o restante dos itens.</option>
+                     <option value="Falta de Tempo Hábil">Término do turno ou fechamento do armazém.</option>
+                     <option value="Avaria no Setor">Problemas na estrutura da doca ou maquinário.</option>
+                     <option value="Divergência Crítica">Processo parado para análise após erro grave.</option>
+                     <option value="Queda de Energia">Interrupção da iluminação ou sistemas locais.</option>      
                 </select>
             </div>
 
             <!-- Campo: Descrição Detalhada -->
             <div>
-                <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">Descrição Detalhada:</label>
+                <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">Justifique:</label>
                 <textarea id="oc_descricao_faltante" rows="3" placeholder="Digite uma descrição detalhada..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: sans-serif; resize: none; box-sizing: border-box;"></textarea>
             </div>
 
             <!-- Campo: Token de Devolução -->
             <div>
-                <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">TOKEN DE DEVOLUÇÃO:</label>
+                <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">TOKEN DE FINALIZAÇÃO:</label>
                 <input type="text" id="oc_token_faltante" placeholder="Digite o token de autorização" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
             </div>
 
@@ -365,7 +371,7 @@
 
 <!-- 1. TELA DE LOGIN -->
 <div id="screen-login" class="card"> <!-- Adicionado a classe card aqui -->
-    <h3>Passagem de Carga | Conferência v6</h3>
+    <h3>Passagem de Carga | Conferência v7</h3>
     <label>E-mail</label>
     <input type="email" id="login-user" placeholder="seu@email.com">
     
