@@ -366,7 +366,7 @@
 
 <!-- 1. TELA DE LOGIN -->
 <div id="screen-login" class="card"> <!-- Adicionado a classe card aqui -->
-    <h3>Passagem de Carga | Conferência v8</h3>
+    <h3>Passagem de Carga | Conferência v9</h3>
     <label>E-mail</label>
     <input type="email" id="login-user" placeholder="seu@email.com">
     
@@ -2612,10 +2612,14 @@ async function abrirNovaTelaOcorrenciaFaltantes() {
     const novoModal = document.getElementById("screenOcorrenciaFaltantes");
     if (novoModal) { novoModal.classList.remove("hidden"); novoModal.style.display = "flex"; }
 
+    // Altere apenas a linha da URL dentro de abrirNovaTelaOcorrenciaFaltantes():
     try {
-        const url = `${urlSheets}?action=verificarPendencias&romaneio=${encodeURIComponent(romaneioVal)}`;
+        // Aponta agora para a rota exclusiva que criamos no servidor
+        const url = `${urlSheets}?action=verificarPendenciasFaltantes&romaneio=${encodeURIComponent(romaneioVal)}`;
         const res = await fetch(url);
         const check = await res.json();
+        
+        // ... restante da renderização dos checkboxes segue idêntico ...
 
         if (container) {
             container.innerHTML = "";
