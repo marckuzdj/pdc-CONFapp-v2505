@@ -299,7 +299,7 @@
 
 <!-- 1. TELA DE LOGIN -->
 <div id="screen-login" class="card"> <!-- Adicionado a classe card aqui -->
-    <h3>Passagem de Carga | Conferência v2</h3>
+    <h3>Passagem de Carga | Conferência v3</h3>
     <label>E-mail</label>
     <input type="email" id="login-user" placeholder="seu@email.com">
     
@@ -2071,13 +2071,15 @@ async function enviarOcorrenciaFluxo() {
  if (motivo === "Mercadoria Avariada" && !temFoto) {
  return alert(" É obrigatório anexar uma foto para evidenciar a Mercadoria Avariada/Danificada!");
  }
- 
+
  // Captura e concatenação horizontal obrigatória dos pedidos selecionados
- const checkboxes = document.querySelectorAll('input[name="oc_itens_selecionados"]:checked, input[name="adm_itens_selecionados"]:checked');
- 
- if (checkboxes.length === 0) {
- return alert(" É MANDATÓRIO selecionar ao menos um pedido com divergência/avaria no painel central!");
- }
+// Localize a trava obrigatória de checkboxes na sua função enviarOcorrenciaFluxo():
+const checkboxes = document.querySelectorAll('input[name="oc_itens_selecionados"]:checked, input[name="adm_itens_selecionados"]:checked');
+
+// 🌟 AJUSTE CIRÚRGICO: Torna a seleção múltipla opcional EXCLUSIVAMENTE se for "Informar"
+if (tipoOcorrenciaSelecionada === "Devolver" && checkboxes.length === 0) {
+    return alert("⚠️ É MANDATÓRIO selecionar ao menos um pedido com divergência/avaria no painel central!");
+}
  
  const listaCodigos = []; 
  checkboxes.forEach(cb => { 
@@ -2506,29 +2508,74 @@ function limparCamposModalOcorrencia() {
     console.log("🧼 Cache visual do modal de ocorrências limpo com sucesso!");
 }
 
-    function selecionarTipoOcorrencia(tipo) {
+function selecionarTipoOcorrencia(tipo) {
     tipoOcorrenciaSelecionada = tipo;
     
     const btnInf = document.getElementById("btnTipoInformar");
     const btnDev = document.getElementById("btnTipoDevolver");
+    
+    // Captura dos elementos do formulário impressos na sua imagem
+    const comboMotivo = document.getElementById("oc_motivo");
     const inputToken = document.getElementById("oc_token_devolucao");
+    const containerItens = document.getElementById("oc_container_fornec");
     
     if (tipo === "Informar") {
-        // Ativa botão Informar (Roxo)
+        // 1. Estilização ativa dos botões superiores (Menu)
         if(btnInf) { btnInf.style.background = "#8A05BE"; btnInf.style.color = "white"; btnInf.style.borderColor = "#8A05BE"; }
-        // Desativa botão Devolver (Cinza)
         if(btnDev) { btnDev.style.background = "#f9f9f9"; btnDev.style.color = "#666"; btnDev.style.borderColor = "#ccc"; }
-        // Modifica placeholder do Token para indicar opcionalidade
-        if(inputToken) inputToken.placeholder = "Digite o token de autorização (Opcional)";
+        
+        // 🌟 AUTOMAÇÃO 1: Seleciona a opção padrão e bloqueia o combo 'Motivo da retenção'
+        if (comboMotivo) {
+            comboMotivo.value = ""; // Reseta para o "Selecione o motivo..." padrão
+            comboMotivo.disabled = true; // Bloqueia fisicamente a digitação/escolha
+            comboMotivo.style.background = "#f4f4f4"; // Feedback visual de desativado
+            comboMotivo.style.cursor = "not-allowed";
+        }
+        
+        // 🌟 AUTOMAÇÃO 2: Bloqueia o campo de input 'TOKEN DE DEVOLUÇÃO'
+        if (inputToken) {
+            inputToken.value = ""; // Limpa qualquer lixo de cache digitado
+            inputToken.disabled = true; // Bloqueia a digitação física
+            inputToken.placeholder = "Não aplicável para o modo Informar"; // Altera o placeholder dinamicamente
+            inputToken.style.background = "#f4f4f4"; // Feedback visual de desativado
+            inputToken.style.cursor = "not-allowed";
+        }
+        
+        // 🌟 AUTOMAÇÃO 3: Desmarca e altera estilização visual do painel multi-seleção (Tornando-o opcional)
+        // Remove a obrigatoriedade desmarcando os itens para que o usuário envie sem selecionar se quiser
+        const checkboxes = document.querySelectorAll('input[name="oc_itens_selecionados"]');
+        checkboxes.forEach(cb => { cb.checked = false; });
+        if (containerItens) {
+            containerItens.style.border = "1px dashed #ccc"; // Altera a borda para pontilhada sinalizando opcionalidade
+        }
+
     } else {
-        // Ativa botão Devolver (Roxo)
+        // --- FLUXO PADRÃO: DEVOLVER ATIVO ---
         if(btnDev) { btnDev.style.background = "#8A05BE"; btnDev.style.color = "white"; btnDev.style.borderColor = "#8A05BE"; }
-        // Desativa botão Informar (Cinza)
         if(btnInf) { btnInf.style.background = "#f9f9f9"; btnInf.style.color = "#666"; btnInf.style.borderColor = "#ccc"; }
-        // Retorna placeholder original
-        if(inputToken) inputToken.placeholder = "Digite o token de autorização";
+        
+        // Libera e restaura o combo 'Motivo da retenção'
+        if (comboMotivo) {
+            comboMotivo.disabled = false;
+            comboMotivo.style.background = "#ffffff";
+            comboMotivo.style.cursor = "default";
+        }
+        
+        // Libera e restaura o input 'TOKEN DE DEVOLUÇÃO'
+        if (inputToken) {
+            inputToken.disabled = false;
+            inputToken.placeholder = "Digite o token de autorização";
+            inputToken.style.background = "#ffffff";
+            inputToken.style.cursor = "text";
+        }
+        
+        // Restaura borda sólida padrão do container multi-seleção de pedidos
+        if (containerItens) {
+            containerItens.style.border = "1px solid #dcdcdc"; 
+        }
     }
 }
+
 
     
 </script>
