@@ -297,9 +297,75 @@
     </div>
 </div>
 
+<!-- NOVO MODAL: EXCLUSIVO PARA ITENS FALTANTES DO FINALIZE -->
+<div id="screenOcorrenciaFaltantes" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 15px; box-sizing: border-box;">
+    <div style="background: white; width: 100%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; font-family: 'Inter', sans-serif;">
+        
+        <!-- Cabeçalho Roxo -->
+        <div style="background: #8A05BE; color: white; padding: 15px; font-weight: bold; font-size: 16px; text-align: center;" id="tituloOcorrenciaFaltantes">
+            Ocorrências - Itens Faltantes
+        </div>
+
+        <div style="padding: 20px; overflow-y: auto; max-height: 75vh; display: flex; flex-direction: column; gap: 15px;">
+            
+            <!-- Botões Superiores Híbridos (Mapeados) -->
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" id="btnFaltanteInformar" onclick="selecionarTipoFaltante('Informar')" style="flex: 1; padding: 10px; border: 2px solid #8A05BE; background: #8A05BE; color: white; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px;">📝 Informar</button>
+                <button type="button" id="btnFaltanteDevolver" onclick="selecionarTipoFaltante('Devolver')" style="flex: 1; padding: 10px; border: 2px solid #ccc; background: #f9f9f9; color: #666; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px;">🔄 Devolver</button>
+            </div>
+
+            <!-- Campo: Motivo da Retenção -->
+            <div>
+                <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">Motivo da Retenção:</label>
+                <select id="oc_motivo_faltante" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background: white; box-sizing: border-box;">
+                    <option value="">Selecione o motivo...</option>
+                    <option value="Mercadoria Avariada">Mercadoria Avariada</option>
+                    <option value="Sobra de Carga">Sobra de Carga</option>
+                    <option value="Divergência Operacional">Divergência Operacional</option>
+                </select>
+            </div>
+
+            <!-- Campo: Descrição Detalhada -->
+            <div>
+                <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">Descrição Detalhada:</label>
+                <textarea id="oc_descricao_faltante" rows="3" placeholder="Digite uma descrição detalhada..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: sans-serif; resize: none; box-sizing: border-box;"></textarea>
+            </div>
+
+            <!-- Campo: Token de Devolução -->
+            <div>
+                <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">TOKEN DE DEVOLUÇÃO:</label>
+                <input type="text" id="oc_token_faltante" placeholder="Digite o token de autorização" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+            </div>
+
+            <!-- Campo: Anexar Evidência -->
+            <div>
+                <label id="lbl_oc_foto_faltante" style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">Foto da Evidência/Avaria: <span style="color: #6c757d; font-weight: normal;">(Opcional)</span></label>
+                <input type="file" id="oc_foto_faltante" accept="image/*" capture="camera" style="width: 100%; font-size: 14px;">
+            </div>
+
+            <!-- Painel Multi-seleção de Pedidos Faltantes -->
+            <div>
+                <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">Selecione os pedidos afetados:</label>
+                <div id="oc_container_fornec_faltante" style="border: 1px solid #dcdcdc; padding: 10px; border-radius: 4px; max-height: 150px; overflow-y: auto; background: #fafafa; box-sizing: border-box;">
+                    <!-- Preenchido via API dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Botões de Ação do Rodapé -->
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="button" onclick="fecharModalFaltantes()" style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Cancelar</button>
+                <button type="button" id="btnEnviarOcorrenciaFaltante" onclick="enviarOcorrenciaFaltanteFluxo()" style="flex: 1; padding: 12px; background: #8A05BE; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Enviar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
 <!-- 1. TELA DE LOGIN -->
 <div id="screen-login" class="card"> <!-- Adicionado a classe card aqui -->
-    <h3>Passagem de Carga | Conferência v5</h3>
+    <h3>Passagem de Carga | Conferência v6</h3>
     <label>E-mail</label>
     <input type="email" id="login-user" placeholder="seu@email.com">
     
@@ -1613,11 +1679,14 @@ async function finalizarLote() {
         const check = await response.json();
 
         // 1. Verifica Pendências (Standby)
+        // 1. Verifica Pendências (Standby) - BL_OCULTO DO PRINT ATUALIZADO
         if (check.faltantes && check.faltantes.length > 0) {
             const qtdFaltantes = check.faltantes.length;
             if (confirm(`⚠️ Atenção: Faltam conferir ${qtdFaltantes} itens neste lote.\n\nPara abortar a conferencia do romaneio, é obrigatório registrar intercorrencia. Continuar?`)) {
                 pulouComentarioFinal = true;
-                showScreen('screen-intercorrencia'); 
+                
+                // 🌟 REDIRECIONAMENTO CIRÚRGICO PARA O NOVO ID DE MODAL ISOLADO
+                abrirNovaTelaOcorrenciaFaltantes();
             }
             btn.disabled = false;
             btn.innerText = "Finalizar Lote";
@@ -2589,6 +2658,170 @@ function selecionarTipoOcorrencia(tipo) {
     }
 }
 
+    // Estado isolado do novo fluxo de itens faltantes
+let fluxoFaltanteSelecionado = "Devolver";
+
+// 🌟 FUNÇÃO 1: Controla a alternância e travas automáticas do novo modal
+function selecionarTipoFaltante(tipo) {
+    fluxoFaltanteSelecionado = tipo;
+    const btnInf = document.getElementById("btnFaltanteInformar");
+    const btnDev = document.getElementById("btnFaltanteDevolver");
+    const comboMotivo = document.getElementById("oc_motivo_faltante");
+    const inputToken = document.getElementById("oc_token_faltante");
+    const containerItens = document.getElementById("oc_container_fornec_faltante");
+
+    if (tipo === "Informar") {
+        if(btnInf) { btnInf.style.background = "#8A05BE"; btnInf.style.color = "white"; btnInf.style.borderColor = "#8A05BE"; }
+        if(btnDev) { btnDev.style.background = "#f9f9f9"; btnDev.style.color = "#666"; btnDev.style.borderColor = "#ccc"; }
+        
+        if (comboMotivo) { comboMotivo.value = ""; comboMotivo.disabled = true; comboMotivo.style.background = "#f4f4f4"; }
+        if (inputToken) { inputToken.value = ""; inputToken.disabled = true; inputToken.placeholder = "Não aplicável no modo Informar"; inputToken.style.background = "#f4f4f4"; }
+        
+        // Remove seleção obrigatória de caixas de pedidos
+        document.querySelectorAll('input[name="oc_itens_faltantes_sel"]').forEach(cb => cb.checked = false);
+        if (containerItens) containerItens.style.border = "1px dashed #ccc";
+    } else {
+        if(btnDev) { btnDev.style.background = "#8A05BE"; btnDev.style.color = "white"; btnDev.style.borderColor = "#8A05BE"; }
+        if(btnInf) { btnInf.style.background = "#f9f9f9"; btnInf.style.color = "#666"; btnInf.style.borderColor = "#ccc"; }
+        
+        if (comboMotivo) { comboMotivo.disabled = false; comboMotivo.style.background = "#ffffff"; }
+        if (inputToken) { inputToken.disabled = false; inputToken.placeholder = "Digite o token de autorização"; inputToken.style.background = "#ffffff"; }
+        if (containerItens) containerItens.style.border = "1px solid #dcdcdc";
+    }
+}
+
+// 🌟 FUNÇÃO 2: Gatilho cirúrgico disparado pelo botão OK do confirm do print
+async function abrirNovaTelaOcorrenciaFaltantes() {
+    const romaneioVal = document.getElementById("romaneio").value;
+    
+    // Altera o título dinamicamente com o romaneio sendo fechado
+    const titulo = document.getElementById("tituloOcorrenciaFaltantes");
+    if(titulo) titulo.innerText = "Faltantes - " + romaneioVal;
+    
+    // Reseta campos internos e força modo Devolver padrão
+    if(document.getElementById("oc_motivo_faltante")) document.getElementById("oc_motivo_faltante").value = "";
+    if(document.getElementById("oc_descricao_faltante")) document.getElementById("oc_descricao_faltante").value = "";
+    if(document.getElementById("oc_token_faltante")) document.getElementById("oc_token_faltante").value = "";
+    if(document.getElementById("oc_foto_faltante")) document.getElementById("oc_foto_faltante").value = "";
+    
+    selecionarTipoFaltante("Devolver");
+
+    const container = document.getElementById("oc_container_fornec_faltante");
+    if (container) container.innerHTML = '<div style="color:#666;font-style:italic;font-size:13px;">Buscando pendências...</div>';
+
+    // Abre visualmente o novo modal independente
+    const novoModal = document.getElementById("screenOcorrenciaFaltantes");
+    if (novoModal) { novoModal.classList.remove("hidden"); novoModal.style.display = "flex"; }
+
+    // Busca itens faltantes na Base_ usando a mesma rota do servidor
+    try {
+        const url = `${urlSheets}?action=verificarPendencias&romaneio=${encodeURIComponent(romaneioVal)}`;
+        const res = await fetch(url);
+        const check = await res.json();
+
+        if (container) {
+            container.innerHTML = "";
+            if (check && check.faltantes && check.faltantes.length > 0) {
+                check.faltantes.forEach(codigo => {
+                    const div = document.createElement("div");
+                    div.style.marginBottom = "6px";
+                    div.style.display = "flex";
+                    div.style.alignItems = "center";
+                    div.style.gap = "8px";
+                    div.innerHTML = `
+                        <input type="checkbox" name="oc_itens_faltantes_sel" value="${codigo}" style="width:16px;height:16px;cursor:pointer;">
+                        <span style="font-size:14px;font-family:monospace;">${codigo}</span>
+                    `;
+                    container.appendChild(div);
+                });
+            } else {
+                container.innerHTML = '<div style="color:#666;font-style:italic;font-size:13px;">Nenhum item faltante listado.</div>';
+            }
+        }
+    } catch(e) {
+        if(container) container.innerHTML = '<div style="color:#dc3545;font-size:13px;">❌ Erro ao listar faltantes.</div>';
+    }
+}
+
+// 🌟 FUNÇÃO 3: Fecha o novo modal de faltantes de forma isolada
+function fecharModalFaltantes() {
+    const modal = document.getElementById("screenOcorrenciaFaltantes");
+    if (modal) { modal.classList.add("hidden"); modal.style.display = "none"; }
+}
+
+// 🌟 FUNÇÃO 4: Motor de Envio independente com as regras híbridas preservadas
+async function enviarOcorrenciaFaltanteFluxo() {
+    const motivo = document.getElementById("oc_motivo_faltante").value;
+    const descText = document.getElementById("oc_descricao_faltante").value.trim();
+    const tokenVal = document.getElementById("oc_token_faltante").value.trim();
+    const fotoIn = document.getElementById("oc_foto_faltante");
+    const btn = document.getElementById("btnEnviarOcorrenciaFaltante");
+    const romaneioVal = document.getElementById("romaneio").value;
+
+    if (fluxoFaltanteSelecionado === "Devolver" && !motivo) return alert("⚠️ Selecione o motivo da retenção!");
+    if (!descText) return alert("⚠️ Digite uma descrição detalhada!");
+    if (fluxoFaltanteSelecionado === "Devolver" && !tokenVal) return alert("⚠️ Informe o TOKEN DE DEVOLUÇÃO!");
+
+    const checkboxes = document.querySelectorAll('input[name="oc_itens_faltantes_sel"]:checked');
+    if (fluxoFaltanteSelecionado === "Devolver" && checkboxes.length === 0) {
+        return alert("⚠️ É MANDATÓRIO selecionar ao menos um pedido afetado!");
+    }
+
+    let listaCodigos = [];
+    checkboxes.forEach(cb => { if(cb.value) listaCodigos.push(cb.value.toString().trim()); });
+
+    let finalDesc = descText + " - [Pedidos Afetados: " + listaCodigos.join(", ") + "]";
+    if (fluxoFaltanteSelecionado === "Informar") finalDesc += " | Volumes confirmados / CONCLUÍDO";
+
+    btn.disabled = true;
+    btn.innerText = "Gravando...";
+
+    // Prepara payload idêntico para a rota doPost salvarFluxoOcorrenciaCONF
+    const payload = {
+        action: "salvarFluxoOcorrenciaCONF",
+        romaneio: romaneioVal,
+        oc_motivo: fluxoFaltanteSelecionado === "Informar" ? "Informe Administrativo" : motivo,
+        oc_descricao: finalDesc,
+        oc_token: tokenVal,
+        oc_foto_data: "", oc_foto_name: "", // Mantido limpo para agilizar fluxo de faltantes
+        oc_itens_remover: JSON.stringify(listaCodigos),
+        tipoFluxo: fluxoFaltanteSelecionado
+    };
+
+    const formParams = new URLSearchParams();
+    Object.keys(payload).forEach(k => formParams.append(k, payload[k]));
+
+    try {
+        const response = await fetch(urlSheets, { method: 'POST', body: formParams, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+        const result = await response.json();
+        if (result.success) {
+            fecharModalFaltantes();
+            alert("🎉 Lote finalizado com sucesso!");
+            if (typeof resetarInterface === "function") resetarInterface();
+        } else {
+            alert("❌ Erro no servidor: " + result.error);
+        }
+    } catch(err) {
+        alert("❌ Falha crítica: " + err.message);
+    } finally {
+        btn.disabled = false; btn.innerText = "Enviar";
+    }
+}
+
+// 🌟 MONITORAMENTO DINÂMICO DOS MOTIVOS DO NOVO MODAL
+document.addEventListener("DOMContentLoaded", function() {
+    const combo = document.getElementById("oc_motivo_faltante");
+    const lbl = document.getElementById("lbl_oc_foto_faltante");
+    if (combo && lbl) {
+        combo.addEventListener("change", function() {
+            if (["Mercadoria Avariada", "Lacre Violado", "Embalagem Aberta"].includes(this.value)) {
+                lbl.innerHTML = 'Foto da Evidência/Avaria: <span style="color:#dc3545;font-weight:bold;">(* Obrigatório)</span>';
+            } else {
+                lbl.innerHTML = 'Foto da Evidência/Avaria: <span style="color:#6c757d;font-weight:normal;">(Opcional)</span>';
+            }
+        });
+    }
+});
 
     
 </script>
