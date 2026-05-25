@@ -297,7 +297,7 @@
     </div>
 </div>
 
-<!-- NOVO MODAL: EXCLUSIVO PARA ITENS FALTANTES DO FINALIZE -->
+<!-- NOVO MODAL: EXCLUSIVO PARA ITENS FALTANTES DO FINALIZE (HIGIENIZADO) -->
 <div id="screenOcorrenciaFaltantes" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 15px; box-sizing: border-box;">
     <div style="background: white; width: 100%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; font-family: 'Inter', sans-serif;">
         
@@ -308,12 +308,7 @@
 
         <div style="padding: 20px; overflow-y: auto; max-height: 75vh; display: flex; flex-direction: column; gap: 15px;">
             
-            <!-- Botões Superiores Híbridos (Mapeados) -->
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button type="button" id="btnFaltanteInformar" onclick="selecionarTipoFaltante('Informar')" style="flex: 1; padding: 10px; border: 2px solid #8A05BE; background: #8A05BE; color: white; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px;">📝 Informar</button>
-                <button type="button" id="btnFaltanteDevolver" onclick="selecionarTipoFaltante('Devolver')" style="flex: 1; padding: 10px; border: 2px solid #ccc; background: #f9f9f9; color: #666; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px;">🔄 Devolver</button>
-            </div>
-
+            <!-- 🌟 BOTÕES REMOVIDOS DAQUI PARA LIMPEZA VISUAL CONFORME O PRINT -->
             <!-- Campo: Motivo da Retenção -->
             <div>
                 <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">Motivo da Retenção:</label>
@@ -334,12 +329,12 @@
             <!-- Campo: Descrição Detalhada -->
             <div>
                 <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">Justifique:</label>
-                <textarea id="oc_descricao_faltante" rows="3" placeholder="Digite uma descrição detalhada..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: sans-serif; resize: none; box-sizing: border-box;"></textarea>
+                <textarea id="oc_descricao_faltante" rows="3" placeholder="Insira uma descrição detalhada..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: sans-serif; resize: none; box-sizing: border-box;"></textarea>
             </div>
 
             <!-- Campo: Token de Devolução -->
             <div>
-                <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">TOKEN DE FINALIZAÇÃO:</label>
+                <label style="display: block; font-weight: bold; font-size: 13px; color: #333; margin-bottom: 5px;">TOKEN AUTORIZAÇÃO (Emitido pelo Operador Logístico):</label>
                 <input type="text" id="oc_token_faltante" placeholder="Digite o token de autorização" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
             </div>
 
@@ -371,7 +366,7 @@
 
 <!-- 1. TELA DE LOGIN -->
 <div id="screen-login" class="card"> <!-- Adicionado a classe card aqui -->
-    <h3>Passagem de Carga | Conferência v7</h3>
+    <h3>Passagem de Carga | Conferência v8</h3>
     <label>E-mail</label>
     <input type="email" id="login-user" placeholder="seu@email.com">
     
@@ -2596,130 +2591,27 @@ function limparCamposModalOcorrencia() {
     console.log("🧼 Cache visual do modal de ocorrências limpo com sucesso!");
 }
 
-function selecionarTipoOcorrencia(tipo) {
-    tipoOcorrenciaSelecionada = tipo;
-    
-    const btnInf = document.getElementById("btnTipoInformar");
-    const btnDev = document.getElementById("btnTipoDevolver");
-    
-    // Captura dos elementos do formulário impressos na sua imagem
-    const comboMotivo = document.getElementById("oc_motivo");
-    const inputToken = document.getElementById("oc_token_devolucao");
-    const containerItens = document.getElementById("oc_container_fornec");
-    
-    if (tipo === "Informar") {
-        // 1. Estilização ativa dos botões superiores (Menu)
-        if(btnInf) { btnInf.style.background = "#8A05BE"; btnInf.style.color = "white"; btnInf.style.borderColor = "#8A05BE"; }
-        if(btnDev) { btnDev.style.background = "#f9f9f9"; btnDev.style.color = "#666"; btnDev.style.borderColor = "#ccc"; }
-        
-        // 🌟 AUTOMAÇÃO 1: Seleciona a opção padrão e bloqueia o combo 'Motivo da retenção'
-        if (comboMotivo) {
-            comboMotivo.value = ""; // Reseta para o "Selecione o motivo..." padrão
-            comboMotivo.disabled = true; // Bloqueia fisicamente a digitação/escolha
-            comboMotivo.style.background = "#f4f4f4"; // Feedback visual de desativado
-            comboMotivo.style.cursor = "not-allowed";
-        }
-        
-        // 🌟 AUTOMAÇÃO 2: Bloqueia o campo de input 'TOKEN DE DEVOLUÇÃO'
-        if (inputToken) {
-            inputToken.value = ""; // Limpa qualquer lixo de cache digitado
-            inputToken.disabled = true; // Bloqueia a digitação física
-            inputToken.placeholder = "Não aplicável para o modo Informar"; // Altera o placeholder dinamicamente
-            inputToken.style.background = "#f4f4f4"; // Feedback visual de desativado
-            inputToken.style.cursor = "not-allowed";
-        }
-        
-        // 🌟 AUTOMAÇÃO 3: Desmarca e altera estilização visual do painel multi-seleção (Tornando-o opcional)
-        // Remove a obrigatoriedade desmarcando os itens para que o usuário envie sem selecionar se quiser
-        const checkboxes = document.querySelectorAll('input[name="oc_itens_selecionados"]');
-        checkboxes.forEach(cb => { cb.checked = false; });
-        if (containerItens) {
-            containerItens.style.border = "1px dashed #ccc"; // Altera a borda para pontilhada sinalizando opcionalidade
-        }
+// 🌟 CIRÚRGICO: Força o estado fixo de Devolução para este modal isolado de faltantes
+const fluxoFaltanteSelecionado = "Devolver";
 
-    } else {
-        // --- FLUXO PADRÃO: DEVOLVER ATIVO ---
-        if(btnDev) { btnDev.style.background = "#8A05BE"; btnDev.style.color = "white"; btnDev.style.borderColor = "#8A05BE"; }
-        if(btnInf) { btnInf.style.background = "#f9f9f9"; btnInf.style.color = "#666"; btnInf.style.borderColor = "#ccc"; }
-        
-        // Libera e restaura o combo 'Motivo da retenção'
-        if (comboMotivo) {
-            comboMotivo.disabled = false;
-            comboMotivo.style.background = "#ffffff";
-            comboMotivo.style.cursor = "default";
-        }
-        
-        // Libera e restaura o input 'TOKEN DE DEVOLUÇÃO'
-        if (inputToken) {
-            inputToken.disabled = false;
-            inputToken.placeholder = "Digite o token de autorização";
-            inputToken.style.background = "#ffffff";
-            inputToken.style.cursor = "text";
-        }
-        
-        // Restaura borda sólida padrão do container multi-seleção de pedidos
-        if (containerItens) {
-            containerItens.style.border = "1px solid #dcdcdc"; 
-        }
-    }
-}
-
-    // Estado isolado do novo fluxo de itens faltantes
-let fluxoFaltanteSelecionado = "Devolver";
-
-// 🌟 FUNÇÃO 1: Controla a alternância e travas automáticas do novo modal
-function selecionarTipoFaltante(tipo) {
-    fluxoFaltanteSelecionado = tipo;
-    const btnInf = document.getElementById("btnFaltanteInformar");
-    const btnDev = document.getElementById("btnFaltanteDevolver");
-    const comboMotivo = document.getElementById("oc_motivo_faltante");
-    const inputToken = document.getElementById("oc_token_faltante");
-    const containerItens = document.getElementById("oc_container_fornec_faltante");
-
-    if (tipo === "Informar") {
-        if(btnInf) { btnInf.style.background = "#8A05BE"; btnInf.style.color = "white"; btnInf.style.borderColor = "#8A05BE"; }
-        if(btnDev) { btnDev.style.background = "#f9f9f9"; btnDev.style.color = "#666"; btnDev.style.borderColor = "#ccc"; }
-        
-        if (comboMotivo) { comboMotivo.value = ""; comboMotivo.disabled = true; comboMotivo.style.background = "#f4f4f4"; }
-        if (inputToken) { inputToken.value = ""; inputToken.disabled = true; inputToken.placeholder = "Não aplicável no modo Informar"; inputToken.style.background = "#f4f4f4"; }
-        
-        // Remove seleção obrigatória de caixas de pedidos
-        document.querySelectorAll('input[name="oc_itens_faltantes_sel"]').forEach(cb => cb.checked = false);
-        if (containerItens) containerItens.style.border = "1px dashed #ccc";
-    } else {
-        if(btnDev) { btnDev.style.background = "#8A05BE"; btnDev.style.color = "white"; btnDev.style.borderColor = "#8A05BE"; }
-        if(btnInf) { btnInf.style.background = "#f9f9f9"; btnInf.style.color = "#666"; btnInf.style.borderColor = "#ccc"; }
-        
-        if (comboMotivo) { comboMotivo.disabled = false; comboMotivo.style.background = "#ffffff"; }
-        if (inputToken) { inputToken.disabled = false; inputToken.placeholder = "Digite o token de autorização"; inputToken.style.background = "#ffffff"; }
-        if (containerItens) containerItens.style.border = "1px solid #dcdcdc";
-    }
-}
-
-// 🌟 FUNÇÃO 2: Gatilho cirúrgico disparado pelo botão OK do confirm do print
 async function abrirNovaTelaOcorrenciaFaltantes() {
     const romaneioVal = document.getElementById("romaneio").value;
     
-    // Altera o título dinamicamente com o romaneio sendo fechado
     const titulo = document.getElementById("tituloOcorrenciaFaltantes");
     if(titulo) titulo.innerText = "Faltantes - " + romaneioVal;
     
-    // Reseta campos internos e força modo Devolver padrão
+    // Reseta todos os campos físicos do formulário para garantir limpeza de cache
     if(document.getElementById("oc_motivo_faltante")) document.getElementById("oc_motivo_faltante").value = "";
     if(document.getElementById("oc_descricao_faltante")) document.getElementById("oc_descricao_faltante").value = "";
     if(document.getElementById("oc_token_faltante")) document.getElementById("oc_token_faltante").value = "";
     if(document.getElementById("oc_foto_faltante")) document.getElementById("oc_foto_faltante").value = "";
-    
-    selecionarTipoFaltante("Devolver");
 
     const container = document.getElementById("oc_container_fornec_faltante");
     if (container) container.innerHTML = '<div style="color:#666;font-style:italic;font-size:13px;">Buscando pendências...</div>';
 
-    // Abre visualmente o novo modal independente
     const novoModal = document.getElementById("screenOcorrenciaFaltantes");
     if (novoModal) { novoModal.classList.remove("hidden"); novoModal.style.display = "flex"; }
 
-    // Busca itens faltantes na Base_ usando a mesma rota do servidor
     try {
         const url = `${urlSheets}?action=verificarPendencias&romaneio=${encodeURIComponent(romaneioVal)}`;
         const res = await fetch(url);
@@ -2749,49 +2641,48 @@ async function abrirNovaTelaOcorrenciaFaltantes() {
     }
 }
 
-// 🌟 FUNÇÃO 3: Fecha o novo modal de faltantes de forma isolada
 function fecharModalFaltantes() {
     const modal = document.getElementById("screenOcorrenciaFaltantes");
     if (modal) { modal.classList.add("hidden"); modal.style.display = "none"; }
 }
 
-// 🌟 FUNÇÃO 4: Motor de Envio independente com as regras híbridas preservadas
+// 🌟 MOTOR DE ENVIO: Trava e valida de forma mandatória como Devolver padrão
 async function enviarOcorrenciaFaltanteFluxo() {
     const motivo = document.getElementById("oc_motivo_faltante").value;
     const descText = document.getElementById("oc_descricao_faltante").value.trim();
     const tokenVal = document.getElementById("oc_token_faltante").value.trim();
-    const fotoIn = document.getElementById("oc_foto_faltante");
     const btn = document.getElementById("btnEnviarOcorrenciaFaltante");
     const romaneioVal = document.getElementById("romaneio").value;
 
-    if (fluxoFaltanteSelecionado === "Devolver" && !motivo) return alert("⚠️ Selecione o motivo da retenção!");
+    // Validações obrigatórias rígidas do fluxo de Devolução
+    if (!motivo) return alert("⚠️ Selecione o motivo da retenção!");
     if (!descText) return alert("⚠️ Digite uma descrição detalhada!");
-    if (fluxoFaltanteSelecionado === "Devolver" && !tokenVal) return alert("⚠️ Informe o TOKEN DE DEVOLUÇÃO!");
+    if (!tokenVal) return alert("⚠️ Informe o TOKEN DE DEVOLUÇÃO!");
 
     const checkboxes = document.querySelectorAll('input[name="oc_itens_faltantes_sel"]:checked');
-    if (fluxoFaltanteSelecionado === "Devolver" && checkboxes.length === 0) {
+    if (checkboxes.length === 0) {
         return alert("⚠️ É MANDATÓRIO selecionar ao menos um pedido afetado!");
     }
 
     let listaCodigos = [];
     checkboxes.forEach(cb => { if(cb.value) listaCodigos.push(cb.value.toString().trim()); });
 
+    // Monta o encerramento no formato padrão estrutural esperado pelo servidor
     let finalDesc = descText + " - [Pedidos Afetados: " + listaCodigos.join(", ") + "]";
-    if (fluxoFaltanteSelecionado === "Informar") finalDesc += " | Volumes confirmados / CONCLUÍDO";
 
     btn.disabled = true;
     btn.innerText = "Gravando...";
 
-    // Prepara payload idêntico para a rota doPost salvarFluxoOcorrenciaCONF
     const payload = {
         action: "salvarFluxoOcorrenciaCONF",
         romaneio: romaneioVal,
-        oc_motivo: fluxoFaltanteSelecionado === "Informar" ? "Informe Administrativo" : motivo,
+        oc_motivo: motivo,
         oc_descricao: finalDesc,
         oc_token: tokenVal,
-        oc_foto_data: "", oc_foto_name: "", // Mantido limpo para agilizar fluxo de faltantes
+        oc_foto_data: "", 
+        oc_foto_name: "", 
         oc_itens_remover: JSON.stringify(listaCodigos),
-        tipoFluxo: fluxoFaltanteSelecionado
+        tipoFluxo: fluxoFaltanteSelecionado // Passa "Devolver" de forma estática fixa
     };
 
     const formParams = new URLSearchParams();
@@ -2810,9 +2701,11 @@ async function enviarOcorrenciaFaltanteFluxo() {
     } catch(err) {
         alert("❌ Falha crítica: " + err.message);
     } finally {
-        btn.disabled = false; btn.innerText = "Enviar";
+        btn.disabled = false; 
+        btn.innerText = "Enviar";
     }
 }
+
 
 // 🌟 MONITORAMENTO DINÂMICO DOS MOTIVOS DO NOVO MODAL
 document.addEventListener("DOMContentLoaded", function() {
