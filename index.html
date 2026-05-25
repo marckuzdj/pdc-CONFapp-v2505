@@ -251,7 +251,7 @@
                 </optgroup>
                 
                 <optgroup label="⚠️ Outros">
-                    <option value="Nova Intercorrencia">Nova Intercorrencia</option>
+                    <option value="Nova Intercorrencia">Nova Intercorrencia/Motivo Devolução</option>
                 </optgroup>
                 
             </select>
@@ -299,7 +299,7 @@
 
 <!-- 1. TELA DE LOGIN -->
 <div id="screen-login" class="card"> <!-- Adicionado a classe card aqui -->
-    <h3>Passagem de Carga | Conferência v4</h3>
+    <h3>Passagem de Carga | Conferência v5</h3>
     <label>E-mail</label>
     <input type="email" id="login-user" placeholder="seu@email.com">
     
@@ -2077,10 +2077,22 @@ async function enviarOcorrenciaFluxo() {
  // 🌟 TRAVA 3: A foto obrigatória por tipo de motivo também fica restrita ao fluxo "Devolver"
  let temFoto = fotoInput && fotoInput.files && fotoInput.files.length > 0;
  if (typeof tipoOcorrenciaSelecionada !== "undefined" && tipoOcorrenciaSelecionada === "Devolver") {
-    if (motivo === "Mercadoria Avariada" && !temFoto) {
-        return alert("⚠️ É obrigatório anexar uma foto para evidenciar a Mercadoria Avariada/Danificada!");
+    
+    // 🌟 CIRÚRGICO: Lista centralizada de todos os motivos que EXIGEM foto obrigatória
+    const motivosExigemFoto = [
+        "Mercadoria Avariada",
+        "Produto Danificado",
+        "Volume Sem Etiqueta",
+        "Lacre Violado",
+        "Falta de Equipamento"
+    ];
+
+    // Checa se o motivo selecionado está na lista e se a foto está faltando
+    if (motivosExigemFoto.includes(motivo) && !temFoto) {
+        return alert("⚠️ É obrigatório anexar uma foto para evidenciar a ocorrência do tipo: " + motivo + "!");
     }
  }
+
  // =========================================================================
 
  // ... Resto do seu código original segue idêntico abaixo (captura de checkboxes, payload e fetch) ...
@@ -2250,7 +2262,10 @@ document.addEventListener("DOMContentLoaded", function() {
     
     if (comboMotivo && labelFoto) {
         comboMotivo.addEventListener("change", function() {
-            if (this.value === "Mercadoria Avariada") {
+            if (this.value === "Mercadoria Avariada" || 
+                this.value === "Produto Danificado" ||
+                this.value === "Volume Sem Etiqueta" || 				
+                this.value === "Falta de Equipamento") {
                 labelFoto.innerHTML = 'Foto da Evidência/Avaria: <span style="color: #dc3545; font-weight: bold;">(* Obrigatório)</span>';
             } else {
                 labelFoto.innerHTML = 'Foto da Evidência/Avaria: <span style="color: #6c757d; font-weight: normal;">(Opcional)</span>';
