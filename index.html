@@ -366,7 +366,7 @@
 
 <!-- 1. TELA DE LOGIN -->
 <div id="screen-login" class="card"> <!-- Adicionado a classe card aqui -->
-    <h3>Passagem de Carga | Conferência v9</h3>
+    <h3>Passagem de Carga | Conferência v10</h3>
     <label>E-mail</label>
     <input type="email" id="login-user" placeholder="seu@email.com">
     
@@ -2623,20 +2623,23 @@ async function abrirNovaTelaOcorrenciaFaltantes() {
 
         if (container) {
             container.innerHTML = "";
-            if (check && check.faltantes && check.faltantes.length > 0) {
-                check.faltantes.forEach(codigo => {
-                    const div = document.createElement("div");
-                    div.style.marginBottom = "6px";
-                    div.style.display = "flex";
-                    div.style.alignItems = "center";
-                    div.style.gap = "8px";
-                    div.innerHTML = `
-                        <input type="checkbox" name="oc_itens_faltantes_sel" value="${codigo}" style="width:16px;height:16px;cursor:pointer;">
-                        <span style="font-size:14px;font-family:monospace;">${codigo}</span>
-                    `;
-                    container.appendChild(div);
-                });
-            } else {
+        // Localize este trecho específico dentro de abrirNovaTelaOcorrenciaFaltantes()
+        if (check && check.faltantes && check.faltantes.length > 0) {
+            check.faltantes.forEach(codigo => {
+                const div = document.createElement("div");
+                div.style.marginBottom = "6px";
+                div.style.display = "flex";
+                div.style.alignItems = "center";
+                div.style.gap = "8px";
+                
+                // 🌟 CIRÚRGICO: Injetado os atributos 'checked' e 'disabled' nativos do HTML
+                div.innerHTML = `
+                    <input type="checkbox" name="oc_itens_faltantes_sel" value="${codigo}" checked disabled style="width:16px;height:16px;cursor:not-allowed;">
+                    <span style="font-size:14px;font-family:monospace;color:#666;">${codigo}</span>
+                `;
+                container.appendChild(div);
+            });
+        } else {
                 container.innerHTML = '<div style="color:#666;font-style:italic;font-size:13px;">Nenhum item faltante listado.</div>';
             }
         }
@@ -2663,7 +2666,11 @@ async function enviarOcorrenciaFaltanteFluxo() {
     if (!descText) return alert("⚠️ Digite uma descrição detalhada!");
     if (!tokenVal) return alert("⚠️ Informe o TOKEN DE DEVOLUÇÃO!");
 
-    const checkboxes = document.querySelectorAll('input[name="oc_itens_faltantes_sel"]:checked');
+     // const checkboxes = document.querySelectorAll('input[name="oc_itens_faltantes_sel"]:checked');
+    // Localize esta linha dentro de enviarOcorrenciaFaltanteFluxo()
+    // Modifique o seletor mudando de ':checked' para ler diretamente o name, já que todos estão travados ativos
+    const checkboxes = document.querySelectorAll('input[name="oc_itens_faltantes_sel"]');
+
     if (checkboxes.length === 0) {
         return alert("⚠️ É MANDATÓRIO selecionar ao menos um pedido afetado!");
     }
