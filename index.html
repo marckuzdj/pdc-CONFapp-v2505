@@ -299,7 +299,7 @@
 
 <!-- 1. TELA DE LOGIN -->
 <div id="screen-login" class="card"> <!-- Adicionado a classe card aqui -->
-    <h3>Passagem de Carga | Conferência v3</h3>
+    <h3>Passagem de Carga | Conferência v4</h3>
     <label>E-mail</label>
     <input type="email" id="login-user" placeholder="seu@email.com">
     
@@ -2055,22 +2055,35 @@ async function enviarOcorrenciaFluxo() {
  const fotoInput = document.getElementById("oc_foto");
  const btn = document.getElementById("btnEnviarOcorrenciaFinal");
  
- // Força o isolamento total do texto digitado para limpar caches residuais de memória local
  const textoDigitadoUsuario = descricaoInput ? descricaoInput.value.toString().trim() : "";
  
- // 1. Validações Locais Básicas Obrigatórias (Originais mantidas)
- if (!motivo) return alert(" Selecione o motivo da retenção!");
- if (!textoDigitadoUsuario) return alert(" Digite uma descrição detalhada!");
+ // =========================================================================
+ // 🔍 VALIDAÇÕES CONDICIONAIS INTELIGENTES (CORREÇÃO DO SEU PRINT)
+ // =========================================================================
  
- // 🌟 CIRÚRGICO: Validação do token de devolução baseada na regra quântica de escolha
+ // 🌟 TRAVA 1: O Motivo só é obrigatório se o fluxo for "Devolver"
  if (typeof tipoOcorrenciaSelecionada !== "undefined" && tipoOcorrenciaSelecionada === "Devolver") {
-   if (!tokenDev.trim()) return alert(" Informe o TOKEN DE DEVOLUÇÃO!");
+    if (!motivo) return alert("⚠️ Selecione o motivo da retenção!");
  }
  
- let temFoto = fotoInput && fotoInput.files && fotoInput.files.length > 0;
- if (motivo === "Mercadoria Avariada" && !temFoto) {
- return alert(" É obrigatório anexar uma foto para evidenciar a Mercadoria Avariada/Danificada!");
+ // A descrição detalhada continua obrigatória para ambos os fluxos
+ if (!textoDigitadoUsuario) return alert("⚠️ Digite uma descrição detalhada!");
+ 
+ // 🌟 TRAVA 2: O Token só é obrigatório se o fluxo for "Devolver"
+ if (typeof tipoOcorrenciaSelecionada !== "undefined" && tipoOcorrenciaSelecionada === "Devolver") {
+   if (!tokenDev.trim()) return alert("⚠️ Informe o TOKEN DE DEVOLUÇÃO!");
  }
+ 
+ // 🌟 TRAVA 3: A foto obrigatória por tipo de motivo também fica restrita ao fluxo "Devolver"
+ let temFoto = fotoInput && fotoInput.files && fotoInput.files.length > 0;
+ if (typeof tipoOcorrenciaSelecionada !== "undefined" && tipoOcorrenciaSelecionada === "Devolver") {
+    if (motivo === "Mercadoria Avariada" && !temFoto) {
+        return alert("⚠️ É obrigatório anexar uma foto para evidenciar a Mercadoria Avariada/Danificada!");
+    }
+ }
+ // =========================================================================
+
+ // ... Resto do seu código original segue idêntico abaixo (captura de checkboxes, payload e fetch) ...
 
  // Captura e concatenação horizontal obrigatória dos pedidos selecionados
 // Localize a trava obrigatória de checkboxes na sua função enviarOcorrenciaFluxo():
